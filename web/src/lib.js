@@ -208,7 +208,7 @@ export function formatBytes(b) {
   const scaled = (b * 100n) / divisor;
   const whole = scaled / 100n;
   const wholeStr = whole.toString();
-  if (whole >= 1024n) {
+  if (wholeStr.length > 50) {
     let exp = wholeStr.length - 1;
     const head = wholeStr.slice(0, 5).padEnd(5, '0');
     let rounded = Math.round(Number(head) / 10);
@@ -276,12 +276,20 @@ function bigIntToFloat(n) {
 export function formatWhimsy(x) {
   if (x === 0) return '0';
   if (!Number.isFinite(x)) return x > 0 ? '∞' : '−∞';
+  const negative = x < 0;
   const abs = Math.abs(x);
   if (abs < 1e-3) return x.toExponential(3);
   if (abs < 1) return x.toFixed(3);
   if (abs < 1000) return x.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  if (abs < 1e15) {
-    return Math.round(x).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (abs < 1e16) {
+    return (negative ? '-' : '') + Math.round(abs).toLocaleString();
   }
-  return x.toExponential(3);
+  const [mantissa, expPart] = abs.toExponential(3).split('e');
+  const exp = parseInt(expPart, 10);
+  if (exp + 1 > 50) return (negative ? '-' : '') + abs.toExponential(3);
+  const [intPart, frac = ''] = mantissa.split('.');
+  const allDigits = intPart + frac;
+  const intStr = allDigits + '0'.repeat(Math.max(0, exp + 1 - allDigits.length));
+  const withCommas = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (negative ? '-' : '') + withCommas;
 }
