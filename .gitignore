@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# Web
+web/node_modules/
+web/dist/
+web/.vite/
+web/*.log
