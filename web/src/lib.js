@@ -190,11 +190,14 @@ export function getStats(N) {
   return { verses: N, lines, pages, bytes };
 }
 
-const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'RB', 'QB'];
+const BYTE_UNITS = [
+  'bytes', 'kilobytes', 'megabytes', 'gigabytes', 'terabytes',
+  'petabytes', 'exabytes', 'zettabytes', 'yottabytes', 'ronnabytes', 'quettabytes',
+];
 
 export function formatBytes(b) {
   b = BigInt(b);
-  if (b < 1024n) return `${b} B`;
+  if (b < 1024n) return `${b} ${b === 1n ? 'byte' : 'bytes'}`;
   let divisor = 1024n;
   let unitIndex = 1;
   const maxIdx = BYTE_UNITS.length - 1;
@@ -224,4 +227,61 @@ export function formatBytes(b) {
 
 export function formatBigInt(n) {
   return BigInt(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const BOTTLE_MASS_KG = 0.2;
+const EARTH_MASS_KG = 5.972e24;
+const SUN_MASS_KG = 1.989e30;
+const CHARS_PER_SECOND_SPEAKING = 15;
+const SECONDS_PER_YEAR = 31_557_600;
+const AGE_OF_UNIVERSE_YEARS = 1.38e10;
+const A4_HEIGHT_METERS = 0.297;
+const EARTH_EQUATOR_METERS = 4.0075e7;
+const EARTH_TO_MOON_METERS = 3.844e8;
+const LIGHT_YEAR_METERS = 9.461e15;
+const BYTES_PER_TB = 1e12;
+const TOTAL_WORLD_DATA_BYTES = 1.81e23;
+
+export function getWhimsy(stats, N) {
+  const bytes = bigIntToFloat(stats.bytes);
+  const pages = bigIntToFloat(stats.pages);
+  const n = bigIntToFloat(N);
+  const seconds = bytes / CHARS_PER_SECOND_SPEAKING;
+  const stackHeight = pages * 0.0001;
+  const lineLength = pages * A4_HEIGHT_METERS;
+  return {
+    hardDrives: bytes / BYTES_PER_TB,
+    worldDataMultiple: bytes / TOTAL_WORLD_DATA_BYTES,
+    readingYears: seconds / SECONDS_PER_YEAR,
+    universesOfReading: seconds / SECONDS_PER_YEAR / AGE_OF_UNIVERSE_YEARS,
+    earthMassesOfGlass: (n * BOTTLE_MASS_KG) / EARTH_MASS_KG,
+    sunMassesOfGlass: (n * BOTTLE_MASS_KG) / SUN_MASS_KG,
+    stackHeightMeters: stackHeight,
+    stackToMoon: stackHeight / EARTH_TO_MOON_METERS,
+    stackInLightYears: stackHeight / LIGHT_YEAR_METERS,
+    paperEquatorLoops: lineLength / EARTH_EQUATOR_METERS,
+  };
+}
+
+function bigIntToFloat(n) {
+  n = BigInt(n);
+  if (n === 0n) return 0;
+  const s = n.toString();
+  if (s.length <= 15) return Number(n);
+  const lead = Number(s.slice(0, 15));
+  const exp = s.length - 15;
+  return lead * Math.pow(10, exp);
+}
+
+export function formatWhimsy(x) {
+  if (x === 0) return '0';
+  if (!Number.isFinite(x)) return x > 0 ? '∞' : '−∞';
+  const abs = Math.abs(x);
+  if (abs < 1e-3) return x.toExponential(3);
+  if (abs < 1) return x.toFixed(3);
+  if (abs < 1000) return x.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (abs < 1e15) {
+    return Math.round(x).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+  return x.toExponential(3);
 }

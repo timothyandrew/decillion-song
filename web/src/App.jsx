@@ -5,12 +5,15 @@ import {
   songLines,
   formatBytes,
   formatBigInt,
+  getWhimsy,
+  formatWhimsy,
 } from './lib.js';
 
 const MAX_PREVIEW = 500;
+const DEFAULT_N = (10n ** 33n).toString();
 
 export default function App() {
-  const [nText, setNText] = useState('100');
+  const [nText, setNText] = useState(DEFAULT_N);
   const [previewLines, setPreviewLines] = useState(20);
 
   const parsed = useMemo(() => {
@@ -21,6 +24,10 @@ export default function App() {
   }, [nText]);
 
   const stats = useMemo(() => (parsed.N === null ? null : getStats(parsed.N)), [parsed.N]);
+  const whimsy = useMemo(
+    () => (stats && parsed.N !== null ? getWhimsy(stats, parsed.N) : null),
+    [stats, parsed.N],
+  );
 
   const preview = useMemo(() => {
     if (parsed.N === null) return [];
@@ -77,7 +84,7 @@ export default function App() {
         <section className="panel">
           <h2>Stats</h2>
           <dl className="stats">
-            <Stat label="Verses" value={stats.verses} />
+            <Stat label="Bottles" value={stats.verses} />
             <Stat label="Lines" value={stats.lines} />
             <Stat
               label="Pages"
@@ -90,6 +97,59 @@ export default function App() {
               primary={formatBytes(stats.bytes)}
               secondary={`${formatBigInt(stats.bytes)} bytes`}
               showWords={false}
+            />
+          </dl>
+        </section>
+      )}
+
+      {whimsy && (
+        <section className="panel">
+          <h2>For scale</h2>
+          <dl className="stats">
+            <Whim
+              label="1 TB hard drives needed"
+              value={whimsy.hardDrives}
+            />
+            <Whim
+              label="Times humanity's total data storage"
+              value={whimsy.worldDataMultiple}
+              hint="vs. ~181 zettabytes generated globally in 2024"
+            />
+            <Whim
+              label="Years to read aloud nonstop"
+              value={whimsy.readingYears}
+              hint="at ~150 words/min"
+            />
+            <Whim
+              label="Ages of the universe spent reading"
+              value={whimsy.universesOfReading}
+              hint="universe age ≈ 13.8 billion years"
+            />
+            <Whim
+              label="Earth-masses of glass"
+              value={whimsy.earthMassesOfGlass}
+              hint="at 200 g per bottle"
+            />
+            <Whim
+              label="Stack height of printed pages"
+              value={whimsy.stackHeightMeters}
+              unit="meters"
+              hint="at 0.1 mm per sheet"
+            />
+            <Whim
+              label="…trips to the Moon"
+              value={whimsy.stackToMoon}
+              hint="same stack, vs. Earth–Moon distance"
+            />
+            <Whim
+              label="…in light-years"
+              value={whimsy.stackInLightYears}
+              hint="same stack"
+            />
+            <Whim
+              label="Trips around Earth's equator"
+              value={whimsy.paperEquatorLoops}
+              hint="pages laid end-to-end"
             />
           </dl>
         </section>
@@ -115,6 +175,21 @@ export default function App() {
           )}
         </section>
       )}
+    </div>
+  );
+}
+
+function Whim({ label, value, unit, hint }) {
+  return (
+    <div className="stat">
+      <dt>{label}</dt>
+      <dd>
+        <div className="num">
+          {formatWhimsy(value)}
+          {unit && <span className="muted"> {unit}</span>}
+        </div>
+        {hint && <div className="secondary">{hint}</div>}
+      </dd>
     </div>
   );
 }
