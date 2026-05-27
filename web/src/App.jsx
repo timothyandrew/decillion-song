@@ -43,7 +43,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Green Bottles</h1>
+        <h1>Big Green Bottles</h1>
         <p className="subtitle">
           Stats and a live preview of the "<em>N</em> green bottles" song, for any
           N up to a googol (10<sup>100</sup>).
